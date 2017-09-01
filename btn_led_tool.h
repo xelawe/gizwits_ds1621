@@ -61,3 +61,58 @@ void IntBtn() {
   cmd = CMD_BUTTON_CHANGE;
 }
 
+void check_btn() {
+
+  switch (cmd) {
+    case CMD_WAIT:
+      break;
+    case CMD_BUTTON_CHANGE:
+      int currentState = digitalRead(btnpin);
+      if (currentState != buttonState) {
+        if (buttonState == LOW && currentState == HIGH) {
+          long duration = millis() - startPress;
+          if (duration < 1000) {
+            DebugPrintln("short press - toggle LED");
+            toggle();
+          } else if (duration < 5000) {
+            DebugPrintln("medium press - reset");
+            restart();
+          } else if (duration < 60000) {
+            DebugPrintln("long press - reset settings");
+            reset();
+          }
+        } else if (buttonState == HIGH && currentState == LOW) {
+          startPress = millis();
+        }
+        buttonState = currentState;
+      }
+      break;
+  }
+
+}
+
+void set_leds() {
+
+  switch (led_stat) {
+    case 0:
+      set_rgb(0, 0, 0);
+      break;
+    case 1:
+      set_rgb(255, 0, 0);
+      break;
+    case 2:
+      set_rgb(0, 255, 0);
+      break;
+    case 3:
+      set_rgb(0, 0, 255);
+      break;
+    case 4:
+      set_rgb(255, 255, 255);
+      break;
+    case 5:
+      set_rgb(255, 255, 255, LDRValue);
+      DebugPrintln(LDRValue);
+      break;
+  }
+}
+
