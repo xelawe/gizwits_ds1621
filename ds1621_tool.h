@@ -4,24 +4,17 @@ byte addr = (0x90 >> 1) | 0;  // replace the 0 with the value you set on pins A2
 DS1621 sensor = DS1621(addr, 5, 14);
 
 void get_ds1621() {
-  int tC, tFrac;
+  float t;
 
-  tC = sensor.getHrTemp();                             // read high-resolution temperature
+  t = sensor.getHrTemp();                             // read high-resolution temperature
+  t /= 100;
+  
+  DebugPrint("Temperature: ");
+  DebugPrint(t);
+  DebugPrint(" *C ");
+  DebugPrintln("");
 
-  if (tC < 0) {
-    tC = -tC;                                   // fix for integer division
-    DebugPrint("-");                          // indicate negative
-  }
-
-  tFrac = tC % 100;                             // extract fractional part
-  tC /= 100;                                    // extract whole part
-
-  DebugPrint(tC);
-  DebugPrint(".");
-  if (tFrac < 10)
-    DebugPrint("0");
-  DebugPrintln(tFrac);
-
+  //  send_val(1, t);
 }
 
 void init_ds1621()
