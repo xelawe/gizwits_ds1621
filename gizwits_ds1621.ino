@@ -9,12 +9,20 @@
 
 #include "cy_wifi.h"
 #include "cy_ota.h"
+#include "cy_weather.h"
+#include "ds1621_tool.h"
+#include <Ticker.h>
 
 #define btnpin 4
 #define ledpinbl 13
 #define ledpinrt 15
 #define ledpingn 12
 #define LDRPin (A0)
+
+const char* gv_hostname = "gizwitsds1621";
+
+Ticker senstick;
+boolean gv_senstick;
 
 int LDRValue;
 int led_stat = 0;
@@ -25,6 +33,10 @@ int cmd = CMD_WAIT;
 int buttonState = HIGH;
 static long startPress = 0;
 
+
+void do_senstick() {
+  gv_senstick = true;
+}
 
 void set_rgb(int iv_red, int iv_green, int iv_blue, int iv_LDRvalue) {
 
@@ -55,8 +67,6 @@ void toggle() {
 
 }
 
-
-
 void restart() {
   ESP.reset();
   delay(1000);
@@ -82,16 +92,19 @@ void setup() {
   Serial.begin(115200);
 #endif
 
-  Wire.begin(5, 14); //     Wire.begin(0,2);
-
   set_rgb(255, 255, 255);
   delay(500);
 
 
-  wifi_init("GizWits");
+  wifi_init(gv_hostname);
   delay(500);
 
-  init_ota("GizWits");
+  init_ota(gv_hostname);
+
+  init_ds1621();
+  do_sensor();
+  gv_senstick = false;
+  senstick.attach(60, do_senstick);
 
   set_rgb(0, 0, 0);
   delay(500);
@@ -106,6 +119,11 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   check_ota();
+
+  if (gv_senstick == true) {
+    do_sensor();
+    gv_senstick = false;
+  }
 
   LDRValue = analogRead(LDRPin);
 
@@ -163,3 +181,10 @@ void loop() {
   delay(100);
 
 }
+
+void do_sensor() {
+
+  get_ds1621();
+
+}
+
